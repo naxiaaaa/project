@@ -6,36 +6,10 @@ import matplotlib
 import re
 import platform
 
-
-# 检测操作系统并设置中文字体
-def set_chinese_font():
-    system = platform.system()
-
-    if system == 'Windows':
-        # Windows系统
-        matplotlib.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei']
-        matplotlib.rcParams['axes.unicode_minus'] = False
-    elif system == 'Darwin':
-        # macOS系统
-        matplotlib.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'Heiti SC']
-        matplotlib.rcParams['axes.unicode_minus'] = False
-    elif system == 'Linux':
-        # Linux系统
-        matplotlib.rcParams['font.sans-serif'] = ['DejaVu Sans']
-        matplotlib.rcParams['axes.unicode_minus'] = False
-
-    # 添加更多的备选字体
-    matplotlib.rcParams['font.sans-serif'] += ['SimHei', 'Microsoft YaHei',
-                                               'KaiTi', 'FangSong', 'STHeiti']
-
-# 设置中文
-set_chinese_font()
-
-# 初始化session state
-if 'data' not in st.session_state:
-    st.session_state.data = None
-if 'results_df' not in st.session_state:
-    st.session_state.results_df = None
+# 设置字体的属性
+# plt.rcParams["font.sans-serif"] = "Arial Unicode MS"
+plt.rcParams["font.sans-serif"] = "SimHei"
+plt.rcParams["axes.unicode_minus"] = False
 
 # ================ 页面设置 ================
 st.set_page_config(
