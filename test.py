@@ -4,10 +4,150 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
 import re
+import platform
+import os
 
-# 设置matplotlib中文
-matplotlib.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei']
-matplotlib.rcParams['axes.unicode_minus'] = False
+# ================ 中文字体设置 ================
+def set_chinese_font():
+    """设置中文字体，兼容本地环境和Streamlit Cloud"""
+    try:
+        # 尝试查找系统中的中文字体
+        system = platform.system()
+
+        # 首先尝试使用预定义的中文字体列表
+        font_families = []
+
+        # Windows字体
+        if system == 'Windows':
+            font_families = ['Microsoft YaHei', 'SimHei', 'SimSun', 'KaiTi', 'FangSong']
+
+        # macOS字体
+        elif system == 'Darwin':
+            font_families = ['Arial Unicode MS', 'PingFang SC', 'Hiragino Sans GB', 'STHeiti']
+
+        # Linux/Streamlit Cloud字体处理
+        else:
+            # 在Streamlit Cloud上，我们需要手动添加字体
+            font_families = ['DejaVu Sans']
+
+            # 尝试查找系统中是否存在中文字体
+            font_paths = [
+                '/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf',
+                '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc',
+                '/usr/share/fonts/truetype/arphic/uming.ttc',
+                '/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc',
+            ]
+
+            # 检查系统字体文件
+            for font_path in font_paths:
+                if os.path.exists(font_path):
+                    try:
+                        # 添加字体到matplotlib
+                        font_prop = matplotlib.font_manager.FontProperties(fname=font_path)
+                        font_name = font_prop.get_name()
+                        font_families.append(font_name)
+                        break
+                    except Exception:
+                        continue
+
+        # 设置matplotlib字体
+        matplotlib.rcParams['font.sans-serif'] = font_families
+        matplotlib.rcParams['axes.unicode_minus'] = False
+
+        # 如果上述方法都不行，尝试加载自定义字体文件
+        if len(matplotlib.rcParams['font.sans-serif']) == 0 or 'DejaVu Sans' in matplotlib.rcParams['font.sans-serif'][
+            0]:
+            # 尝试在项目目录中查找字体文件
+            custom_font_paths = [
+                'fonts/SimHei.ttf',
+                'fonts/msyh.ttc',
+                'fonts/STHeiti.ttc',
+                'SimHei.ttf',
+                'msyh.ttc'
+            ]
+
+            for font_path in custom_font_paths:
+                if os.path.exists(font_path):
+                    try:
+                        # 添加字体到matplotlib
+                        matplotlib.font_manager.fontManager.addfont(font_path)
+                        font_name = matplotlib.font_manager.FontProperties(fname=font_path).get_name()
+                        matplotlib.rcParams['font.sans-serif'] = [font_name] + font_families
+                        matplotlib.rcParams['axes.unicode_minus'] = False
+                        print(f"成功加载自定义字体: {font_name} from {font_path}")
+                        break
+                    except Exception as e:
+                        print(f"加载自定义字体失败 {font_path}: {e}")
+                        continue
+
+        # 设置回退字体
+        if 'DejaVu Sans' not in matplotlib.rcParams['font.sans-serif']:
+            matplotlib.rcParams['font.sans-serif'].append('DejaVu Sans')
+
+        # 验证字体设置
+        print(f"设置的字体: {matplotlib.rcParams['font.sans-serif']}")
+
+    except Exception as e:
+        print(f"设置中文字体时出错: {e}")
+        # 设置一个基本的字体回退
+        matplotlib.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS', 'Microsoft YaHei']
+        matplotlib.rcParams['axes.unicode_minus'] = False
+
+
+# 初始化中文字体
+set_chinese_font()
+
+# ================ 页面设置 ================
+st.set_page_config(
+    page_title="多维指标分析系统",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# 添加自定义CSS样式
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        color: #1E3A8A;
+        text-align: center;
+        margin-bottom: 1rem;
+        font-weight: bold;
+    }
+    .sub-header {
+        font-size: 1.5rem;
+        color: #1E40AF;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        font-weight: bold;
+    }
+    .metric-card {
+        background-color: #F8FAFC;
+        padding: 1rem;
+        border-radius: 10px;
+        border-left: 5px solid #3B82F6;
+        margin-bottom: 1rem;
+    }
+    .stDownloadButton button {
+        width: 100%;
+        background-color: #3B82F6;
+        color: white;
+    }
+    .stDownloadButton button:hover {
+        background-color: #2563EB;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# 应用标题
+st.markdown('<div class="main-header">📊 多维指标分析系统</div>', unsafe_allow_html=True)
+
+# 初始化session state
+if 'data' not in st.session_state:
+    st.session_state.data = None
+if 'results_cache' not in st.session_state:
+    st.session_state.results_cache = {}
 
 
 # ================ 工具函数 ================
